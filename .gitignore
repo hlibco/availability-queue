@@ -1,0 +1,19 @@
+# IDE
+/.idea
+/.vscode
+
+# Dependencies
+node_modules
+*-lock.json
+
+# Compiled files
+.build
+.dist
+build
+dist
+
+# Logs
+.log
+
+# Tests
+/coverage
