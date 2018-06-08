@@ -1,5 +1,5 @@
 import { IItem, Time, Dt } from './interfaces/IItem'
-import { IQueue } from './interfaces/IQueue'
+import { IQueue, IPosition } from './interfaces/IQueue'
 
 type DateMap = Map<Dt, TimeMap>
 type TimeMap = Map<Time, IItem[]>
@@ -57,26 +57,55 @@ export default class Queue implements IQueue {
 		})
 	}
 
-	next(date: string, time: number): IItem {
-		const compare = (a, b) => {
-			if (a.priority > b.priority) {
-				return -1
-			} else if (a.priority < b.priority) {
-				return 1
-			}
-			return 0
-		}
-
+	next(date: string, time: number): IItem | undefined {
 		const timeMap = this.queue.get(date)
 		if (timeMap) {
 			const items = timeMap.get(time) as IItem[]
-			return items.sort(compare)[0]
+			return items.sort(this.rank)[0]
 		}
 
-		throw new Error(`No items on ${date} at ${time}h`)
+		return
 	}
 
-	describe() {
+	position(item: IItem): IPosition | undefined {
+		let posix = {}
+		let minPosition = Infinity
+
+		this.queue.forEach((timeMap, date) => {
+			timeMap.forEach((items, time) => {
+				const sortedItems = items.sort(this.rank)
+				const position = sortedItems.indexOf(item)
+				if (~position && position < minPosition) {
+					posix = {
+						position,
+						date,
+						time
+					}
+					minPosition = position
+
+					if (minPosition === 0) {
+						return
+					}
+				}
+			})
+			if (minPosition === 0) {
+				return
+			}
+		})
+
+		return minPosition === Infinity ? undefined : (posix as IPosition)
+	}
+
+	private rank(a, b) {
+		if (a.priority > b.priority) {
+			return -1
+		} else if (a.priority < b.priority) {
+			return 1
+		}
+		return 0
+	}
+
+	describe(): DateMap {
 		return this.queue
 	}
 }

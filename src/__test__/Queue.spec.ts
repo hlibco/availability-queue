@@ -63,7 +63,7 @@ describe('Queue', () => {
 		queue.add(item3)
 		queue.add(item4)
 
-		let next: IItem
+		let next: IItem | undefined
 		next = queue.next('2018-01-02', 10)
 		expect(next).toEqual(item1)
 
@@ -80,7 +80,40 @@ describe('Queue', () => {
 		expect(next).toEqual(item3)
 
 		queue.remove(item3)
-		const fetch = () => (next = queue.next('2018-01-02', 10))
-		expect(fetch).toThrow()
+		// const fetch = () => (next = queue.next('2018-01-02', 10))
+		next = queue.next('2018-01-02', 10)
+		expect(next).toEqual(undefined)
+	})
+
+	test('position()', () => {
+		const queue = new Queue()
+
+		const item1 = new Item(1, 4, new Map([['2018-01-02', [10]]]))
+		const item2 = new Item(1, 8, new Map([['2018-01-02', [10]]]))
+		queue.add(item1)
+		queue.add(item2)
+
+		// Get the positions for the items
+		expect(queue.position(item1)).toEqual({
+			position: 1,
+			date: '2018-01-02',
+			time: 10
+		})
+		expect(queue.position(item2)).toEqual({
+			position: 0,
+			date: '2018-01-02',
+			time: 10
+		})
+
+		// Get the position for item1 after item2 has been deleted
+		queue.remove(item2)
+		expect(queue.position(item1)).toEqual({
+			position: 0,
+			date: '2018-01-02',
+			time: 10
+		})
+
+		// Get the position for an item not in the list
+		expect(queue.position(item2)).toEqual(undefined)
 	})
 })
